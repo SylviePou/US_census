@@ -10,5 +10,7 @@ The following packages are necesary to ensure the proper execution of the operat
 -  matplotlib
 -  sklearn
 
+Code and analysis are located in the notebook named Sylvie_code.ipnb.
+
 First step is to define the trainset_path and testset_path in Part I : Import the data.
 Then, the rest should follow very easily.
