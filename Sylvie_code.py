@@ -37,8 +37,8 @@ testdata_path = './us_census_full/census_income_test.csv'
 
 # In[3]:
 
-trainset = pd.read_csv(traindata_path, sep=',', skiprows=2, header=None, index_col=False)
-testset = pd.read_csv(testdata_path, sep=',', skiprows=2, header=None, index_col=False)
+trainset = pd.read_csv(traindata_path, sep=',', header=None, index_col=False)
+testset = pd.read_csv(testdata_path, sep=',', header=None, index_col=False)
 
 
 # In[4]:
@@ -85,17 +85,22 @@ print 'There are %d observations in the trainset for %d variables.'         %(tr
 # 
 # 
 
+# In[11]:
+
+print 'There are %d observations in the testset for %d variables.'         %(testset.shape[0], testset.shape[1])
+
+
 # #### Probability for both labels
 # Let's see the proportion of persons making more than 50.000 \$ and the other category.
 
-# In[11]:
+# In[12]:
 
 count = trainset['WAGE'].value_counts()
 for i in range(len(count)) :
     print 'There are %.2f%% of people making %s$ in the trainset.'             %(float(count[i])*100/len(trainset), count.keys()[i])
 
 
-# In[12]:
+# In[13]:
 
 count = testset['WAGE'].value_counts()
 for i in range(len(count)) :
@@ -106,6 +111,19 @@ for i in range(len(count)) :
 # 
 # We will keep the datasets that way but instead of only using the accuracy as a metric, we are going to specific metrics
 
+# Duplicate analysis
+
+# In[14]:
+
+Dupl = trainset.duplicated()
+print 'There are %d duplicated rows in the trainset' %(len(Dupl[Dupl]))
+
+Dupl = testset.duplicated()
+print 'There are %d duplicated rows in the testset' %(len(Dupl[Dupl]))
+
+
+# However, we are going to keep these rows in order to consider the fact that their values could be influent for the analysis.
+
 # 
 # 
 # 
@@ -115,19 +133,19 @@ for i in range(len(count)) :
 
 # Let's take a look at the statistics of the two categories of people we are interested in. Since we have continuous variables and categorical variables, the next analysis will only focus on the continuous variables. Then, we will look at the distribution of the categorical variables.
 
-# In[13]:
+# In[15]:
 
 trainset.dtypes
 
 
-# In[14]:
+# In[16]:
 
 trainset.describe()
 
 
 # When looking at the feature AHRSPAY, we can see that the maximum value is 9999 \$ per hour with a mean of 55 \$ per hour. Since it seems absurd, we can first look at the mean for all employed person.
 
-# In[15]:
+# In[17]:
 
 trainset[trainset['WKSWORK'][:] != 0].describe()
 
@@ -138,24 +156,24 @@ trainset[trainset['WKSWORK'][:] != 0].describe()
 
 # ### Statistics on people who have an annual wage under 50.000 dollars
 
-# In[16]:
+# In[18]:
 
 trainset[trainset['WAGE'] == ' - 50000.'].describe()
 
 
-# In[17]:
+# In[19]:
 
 trainset[trainset['WAGE'] == ' - 50000.'].hist(figsize=(20,20))
 
 
 # ### Statistics on people who have an annual wage above 50.000 dollars
 
-# In[18]:
+# In[20]:
 
 trainset[trainset['WAGE'] == ' 50000+.'].describe()
 
 
-# In[19]:
+# In[21]:
 
 trainset[trainset['WAGE'] == ' 50000+.'].hist(figsize=(20,20))
 
@@ -170,7 +188,7 @@ trainset[trainset['WAGE'] == ' 50000+.'].hist(figsize=(20,20))
 
 # ## Part II.2 :  Analyze categorical variables
 
-# In[20]:
+# In[22]:
 
 for col in trainset.columns :
     if trainset.dtypes[col] == 'object' :
@@ -197,13 +215,13 @@ for col in trainset.columns :
 # 
 # We can continue our analysis by looking at the variables correlation
 
-# In[21]:
+# In[23]:
 
 # Correlation matrix of our trainset :
 corr_matrix = trainset.corr()
 
 
-# In[22]:
+# In[24]:
 
 fig, ax = plt.subplots(figsize=(15,15)) 
 sns.set(font_scale=1.1)
@@ -231,7 +249,7 @@ plt.close(fig)
 # When we analyzed the categorical variables, we noticed some missing data noted as ' ?'. We can first try to find these observations and then we will decide what to do with these incomplete observations.
 # Regarding the numerical values, we don't know if we have missing values. We will first look at these features then handle the missing catergorial values.
 
-# In[23]:
+# In[25]:
 
 trainset.count(), testset.count()
 
@@ -239,7 +257,7 @@ trainset.count(), testset.count()
 # If we are just looking at this result, we don't have anything missing in any column (continuous and categorical variables). 
 # However, we already know that we have missing catergorial values. For each column, we are going to display the number of observations with a missing data.
 
-# In[24]:
+# In[26]:
 
 def find_missing_data(df):
     for i, col in enumerate(df.columns[:]):
@@ -249,7 +267,7 @@ def find_missing_data(df):
                 print col, n_counts[' ?']
 
 
-# In[25]:
+# In[27]:
 
 print 'Missing values of the trainset : \n', find_missing_data(trainset), '\n'
 print 'Missing values of the testset : \n', find_missing_data(testset), '\n'
@@ -261,7 +279,7 @@ print 'Missing values of the testset : \n', find_missing_data(testset), '\n'
 # 
 # We then choose to remove the persons with missing values, instead of removing the columns GRINST, PEFNTVTY, PEMNTVTY, and PENATVTY which could be be influent variables.
 
-# In[26]:
+# In[28]:
 
 def handle_missing_data(df):
     sel_col = []
@@ -278,19 +296,19 @@ def handle_missing_data(df):
     df.drop(df.index[list(set(sel_row))], axis=0, inplace=True)
 
 
-# In[27]:
+# In[29]:
 
 handle_missing_data(trainset)
 handle_missing_data(testset)
 
 
-# In[28]:
+# In[30]:
 
 print 'Missing values of the trainset : \n', find_missing_data(trainset), '\n'
 print 'Missing values of the testset : \n', find_missing_data(testset), '\n'
 
 
-# In[29]:
+# In[31]:
 
 print 'There are %d observations in the trainset for %d variables.'         %(trainset.shape[0], trainset.shape[1])
 
@@ -303,12 +321,12 @@ print 'There are %d observations in the trainset for %d variables.'         %(tr
 
 # ### Group the education
 
-# In[30]:
+# In[32]:
 
 pd.unique(trainset.AHGA)
 
 
-# In[31]:
+# In[33]:
 
 def group_educ(df):
     educ = []
@@ -328,7 +346,7 @@ def group_educ(df):
     return educ
 
 
-# In[32]:
+# In[34]:
 
 trainset.insert(4, 'AEDUC', str)
 testset.insert(4, 'AEDUC', str)
@@ -340,7 +358,7 @@ trainset.drop(['AHGA'], axis=1, inplace=True)
 testset.drop(['AHGA'], axis=1, inplace=True)
 
 
-# In[33]:
+# In[35]:
 
 # Display the new distribution :
 sns.countplot(y='AEDUC', hue='WAGE', data=trainset, )
@@ -351,12 +369,12 @@ sns.plt.show()
 # 
 # We can first suppose that the country of birth parents are not relevant. However, we can suppose that the country of birth of the person is influent. Since this feature has many countries, we can group them into continents.
 
-# In[34]:
+# In[36]:
 
 pd.unique(trainset['PENATVTY'])
 
 
-# In[35]:
+# In[37]:
 
 def group_country(df):
     country_list = []
@@ -372,7 +390,7 @@ def group_country(df):
     return country_list
 
 
-# In[36]:
+# In[38]:
 
 trainset.insert(trainset.shape[1]-1, 'COUNTRY', str)
 testset.insert(testset.shape[1]-1, 'COUNTRY', str)
@@ -384,14 +402,14 @@ trainset.drop(['PENATVTY'], axis=1, inplace=True)
 testset.drop(['PENATVTY'], axis=1, inplace=True)
 
 
-# In[37]:
+# In[39]:
 
 # Display the new distribution :
 sns.countplot(y='COUNTRY', hue='WAGE', data=trainset, )
 sns.plt.show()
 
 
-# In[38]:
+# In[40]:
 
 print 'There are %d observations in the trainset for %d variables.'         %(trainset.shape[0], trainset.shape[1])
 
@@ -402,18 +420,18 @@ print 'There are %d observations in the trainset for %d variables.'         %(tr
 # 
 # According to the previous data discovery part, we are going to suppose that these features are not relevant and we are going to keep the following ones : AAGE, AEDUC, AMARILTL, ASEX, CAPGAIN, CAPLOSS, DIVVAL, PRCITSHP, VETYN, WKSWORK, COUNTRY.
 
-# In[39]:
+# In[41]:
 
 sel_col_drop = ['ACLSWKR', 'ADTIND', 'ADTOCC', 'AHRSPAY', 'AHSCOL',                   'AMJIND', 'AMJOCC', 'AREORGN', 'AUNMEM', 'AUNTYPE',                   'AWKSTAT', 'FILESTAT', 'GRINREG', 'GRINST', 'HHDFMX',                 'HHDREL', 'NOEMP','PARENT', 'PEFNTVTY', 'PEMNTVTY',                   'SEOTR', 'VETQVA', 'YEAR']
 
 
-# In[40]:
+# In[42]:
 
 trainset.drop(sel_col_drop, axis=1, inplace=True)
 testset.drop(sel_col_drop, axis=1, inplace=True)
 
 
-# In[41]:
+# In[43]:
 
 trainset.shape, testset.shape
 
@@ -422,7 +440,7 @@ trainset.shape, testset.shape
 # 
 # Our categorical variables cannot be understood by machine learning algorithms so we first have to convert them into dummy variables.
 
-# In[42]:
+# In[44]:
 
 def annual_wage(df):
     wage = []
@@ -434,25 +452,25 @@ def annual_wage(df):
     return wage
 
 
-# In[43]:
+# In[45]:
 
 trainset.insert(0, 'WAGE_ANN', int)
 testset.insert(0, 'WAGE_ANN', int)
 
 
-# In[44]:
+# In[46]:
 
 trainset['WAGE_ANN'] = annual_wage(trainset)
 testset['WAGE_ANN'] = annual_wage(testset)
 
 
-# In[45]:
+# In[47]:
 
 trainset.drop(['WAGE'], axis=1, inplace=True)
 testset.drop(['WAGE'], axis=1, inplace=True)
 
 
-# In[46]:
+# In[48]:
 
 def dummy_variables(df):
     df_type = df.dtypes
@@ -463,35 +481,35 @@ def dummy_variables(df):
     return df
 
 
-# In[47]:
+# In[49]:
 
 trainset_ = dummy_variables(trainset)
 testset_ = dummy_variables(testset)
 
 
-# In[48]:
+# In[50]:
 
 print 'There are %d observations in the trainset for %d variables.'         %(trainset_.shape[0], trainset_.shape[1])
 
 
-# In[49]:
+# In[51]:
 
 trainset_.shape, testset_.shape
 
 
-# In[50]:
+# In[52]:
 
 # We notice that testset_ has 322 columns and trainset_ 323. Let's check if we have the same columns and 
 # which column is missing.
 missing_col = list(set(trainset_.columns) - set(testset_.columns))
 
 
-# In[51]:
+# In[53]:
 
 missing_col
 
 
-# In[52]:
+# In[54]:
 
 for i in missing_col:
     testset_.insert(testset_.shape[1] - 1, i, int)
@@ -501,7 +519,7 @@ for i in missing_col:
 # 
 # 
 
-# In[53]:
+# In[55]:
 
 trainset_.head()
 
@@ -512,30 +530,30 @@ trainset_.head()
 
 # ## Part IV.1 : Split the data
 
-# In[54]:
+# In[56]:
 
 trainset_.reset_index(inplace=True)
 testset_.reset_index(inplace=True)
 
 
-# In[55]:
+# In[57]:
 
 trainset_.drop(['index'], axis=1, inplace=True)
 testset_.drop(['index'], axis=1, inplace=True)
 
 
-# In[56]:
+# In[58]:
 
 X = trainset_.iloc[:,1:]
 Y = trainset_['WAGE_ANN']
 
 
-# In[57]:
+# In[59]:
 
 X_train, X_val, Y_train, Y_val = model_selection.train_test_split(X, Y,                                                                   test_size=0.20, random_state=100)
 
 
-# In[58]:
+# In[60]:
 
 X_train.shape, X_val.shape, Y_train.shape, Y_val.shape
 
@@ -547,18 +565,18 @@ X_train.shape, X_val.shape, Y_train.shape, Y_val.shape
 
 # ### Logistic Regression model
 
-# In[59]:
+# In[61]:
 
 logregCV = linear_model.LogisticRegressionCV()
 logregCV.fit(X_train, Y_train)
 
 
-# In[60]:
+# In[62]:
 
 Y_pred = logregCV.predict(X_val)
 
 
-# In[61]:
+# In[63]:
 
 print 'Accuracy score : %.3f' %(logregCV.score(X_val, Y_val))
 print 'Prediction error : %.3f \n' %(1 - logregCV.score(X_val, Y_val))
@@ -571,13 +589,13 @@ print 'ROC AUC : %.3f' %(metrics.roc_auc_score(Y_val, Y_pred))
 
 # #### Plot the ROC curve
 
-# In[62]:
+# In[64]:
 
 false_positive_rate, true_positive_rate, _ = metrics.roc_curve(Y_val, Y_pred)
 roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
 
 
-# In[63]:
+# In[65]:
 
 fig = plt.figure(figsize=(20,10))
 
@@ -599,7 +617,7 @@ plt.close(fig)
 # 
 # Let's cross-validate this model by looking at the optimal max_features parameter.
 
-# In[64]:
+# In[66]:
 
 ROC_AUC_CV = []
 
@@ -610,7 +628,7 @@ for i in range(X_train.shape[1]):
     ROC_AUC_CV.append(metrics.roc_auc_score(Y_val, Y_pred))
 
 
-# In[65]:
+# In[67]:
 
 fig = plt.figure(figsize=(20,10))
 plt.plot(range(1, X_train.shape[1]+1), ROC_AUC_CV)
@@ -628,23 +646,23 @@ plt.close(fig)
 
 # We now use the Random Forest Classifier with the optimal parameter.
 
-# In[66]:
+# In[68]:
 
 optimal_param = np.argmax(ROC_AUC_CV) + 1
 
 
-# In[67]:
+# In[69]:
 
 rf = RandomForestClassifier(max_features=optimal_param)
 rf.fit(X_train, Y_train)
 
 
-# In[68]:
+# In[70]:
 
 Y_pred = rf.predict(X_val)
 
 
-# In[69]:
+# In[71]:
 
 print 'Accuracy score : %.3f' %(rf.score(X_val, Y_val))
 print 'Prediction error : %.3f \n' %(1 - rf.score(X_val, Y_val))
@@ -657,13 +675,13 @@ print 'ROC AUC : %.3f' %(metrics.roc_auc_score(Y_val, Y_pred))
 
 # #### Plot the ROC curve
 
-# In[70]:
+# In[72]:
 
 false_positive_rate, true_positive_rate, _ = metrics.roc_curve(Y_val, Y_pred)
 roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
 
 
-# In[71]:
+# In[73]:
 
 fig = plt.figure(figsize=(20,10))
 
@@ -681,7 +699,7 @@ plt.close(fig)
 
 # ##### Display the most important features for our prediction model. 
 
-# In[72]:
+# In[74]:
 
 feat = rf.feature_importances_
 
@@ -703,14 +721,14 @@ plt.close(fig)
 # 
 # We can also try another algorithm which performs a feature selection.
 
-# In[73]:
+# In[75]:
 
 ridge = linear_model.RidgeClassifierCV()
 ridge.fit(X_train, Y_train)
 Y_pred = ridge.predict(X_val)
 
 
-# In[74]:
+# In[76]:
 
 print 'Accuracy score : %.3f' %(ridge.score(X_val, Y_val))
 print 'Prediction error : %.3f \n' %(1-ridge.score(X_val, Y_val))
@@ -723,13 +741,13 @@ print 'ROC AUC : %.3f' %(metrics.roc_auc_score(Y_val, Y_pred))
 
 # #### Plot the ROC curve
 
-# In[75]:
+# In[77]:
 
 false_positive_rate, true_positive_rate, _ = metrics.roc_curve(Y_val, Y_pred)
 roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
 
 
-# In[76]:
+# In[78]:
 
 fig = plt.figure(figsize=(20,10))
 
@@ -747,13 +765,13 @@ plt.close(fig)
 
 # We can also display the feature selection.
 
-# In[77]:
+# In[79]:
 
 coef = sorted(zip(map(abs,ridge.coef_[0]), X_train.columns), key=lambda x: x[0])
 coef_sorted = zip(*coef)
 
 
-# In[78]:
+# In[80]:
 
 fig = plt.figure(figsize=(20,20))
 plt.plot(coef_sorted[0], range(len(coef_sorted[0])))
@@ -781,23 +799,23 @@ plt.close(fig)
 
 # ## Part IV.3 : Test the chosen model
 
-# In[79]:
+# In[81]:
 
 X_test = testset_.iloc[:,1:]
 Y_test = testset_['WAGE_ANN']
 
 
-# In[80]:
+# In[82]:
 
 model_prediction = rf
 
 
-# In[81]:
+# In[83]:
 
 Y_pred = model_prediction.predict(X_test)
 
 
-# In[82]:
+# In[84]:
 
 print 'Accuracy score : %.3f' %(model_prediction.score(X_test, Y_test))
 print 'Prediction error : %.3f \n' %(1-model_prediction.score(X_test, Y_test))
@@ -810,13 +828,13 @@ print 'ROC AUC : %.3f' %(metrics.roc_auc_score(Y_test, Y_pred))
 
 # #### Plot the ROC curve
 
-# In[83]:
+# In[85]:
 
 false_positive_rate, true_positive_rate, _ = metrics.roc_curve(Y_test, Y_pred)
 roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
 
 
-# In[84]:
+# In[86]:
 
 fig = plt.figure(figsize=(20,10))
 
@@ -838,12 +856,12 @@ plt.close(fig)
 # 
 # With the chosen model applied on the testset, we get the following results : 
 # 
-#     - Accuracy score    : 0.946
-#     - Prediction error  : 0.054 
-#     - Precision score   : 0.596
-#     - Recall score      : 0.373
-#     - F1-score          : 0.459
-#     - ROC AUC           : 0.678
+#     - Accuracy score    : 0.947
+#     - Prediction error  : 0.053 
+#     - Precision score   : 0.609
+#     - Recall score      : 0.390
+#     - F1-score          : 0.468
+#     - ROC AUC           : 0.682
 #     
 # It is obvious that we could improve our model, but our prediction error is quite competitive with these error rates :
 #    
@@ -866,8 +884,6 @@ plt.close(fig)
 # The problems encountered during this analysis are multiple and we had to make a choice to handle them.
 # 
 # One of them is the large number of features incomprehensible. Indeed, before feature selection automatically, it is not easy to choose the relevant features if they are hard to understand. 
-# 
-# The large number of nominal variables was also a problem to tackle. Indeed, we used to use R to do some Machine Learning and R can handle catrgorical variables. With Python Sklearn, we have to convert the values into numerical values and the issue was how to choose the encoding : Dummy variables (with small amount of distinct values) or One Hot Encoding (analyze meaning of these values VS continuous values like Age).
 # 
 # Another issue was deciding how to handle missing data. Since the features MIGMTR1, MIGMTR3, MIGMTR4 and MIGSUN were missing a large number of values, we decided to remove them. However, in the case of the other features, we could have chosen to give the average values according to the sex, age or job.
 # 
