@@ -1,0 +1,14 @@
+DOCUMENTATION
+-------------
+
+Python version used is 2.7.11.
+
+The following packages are necesary to ensure the proper execution of the operations :
+-  numpy
+-  pandas 
+-  seaborn
+-  matplotlib
+-  sklearn
+
+First step is to define the trainset_path and testset_path in Part I : Import the data.
+Then, the rest should follow very easily.
