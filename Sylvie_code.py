@@ -861,6 +861,8 @@ plt.close(fig)
 # 
 # 
 
+# ##### Problem encountered 
+# 
 # The problems encountered during this analysis are multiple and we had to make a choice to handle them.
 # 
 # One of them is the large number of features incomprehensible. Indeed, before feature selection automatically, it is not easy to choose the relevant features if they are hard to understand. 
